@@ -77,8 +77,23 @@ $ make ENABLE_SYSTEM=1 system
 Build using run using specified images:
 ```shell
 $ make ENABLE_SYSTEM=1
-$ build/rv32emu -k <kernel_img_path> -i <rootfs_img_path>
+$ build/rv32emu -k <kernel_img_path> -i <rootfs_img_path> [-x vblk:<virtio_blk_img_path>]
 ```
+
+#### Virtio Block Device (optional)
+Generate ext4 image file for virtio block device in Unix-like system:
+```shell
+$ dd if=/dev/zero of=disk.img bs=4M count=32
+$ mkfs.ext4 disk.img
+```
+Mount the virtual block device and create a test file after booting, note that root privilege is required to mount and unmount a disk:
+```shell
+# mkdir mnt
+# mount /dev/vda mnt
+# echo "rv32emu" > mnt/emu.txt
+# umount mnt
+```
+Reboot and re-mount the system, the written file should remain existing.
 
 #### Build Linux image
 An automated build script is provided to compile the RISC-V cross-compiler, Busybox, and Linux kernel from source. Please note that it only supports the Linux host environment. It can be found at tools/build-linux-image.sh.
