@@ -129,11 +129,11 @@ fetch-checksum:
 ifeq ($(call has, PREBUILT), 1)
 	$(Q)$(PRINTF) "Fetching SHA-1 of prebuilt binaries ... "
 ifeq ($(call has, SYSTEM), 1)
-	$(Q)wget -q -O $(BIN_DIR)/sha1sum-linux-image https://github.com/sysprog21/rv32emu-prebuilt/releases/download/$(LATEST_RELEASE)/sha1sum-linux-image
+	- $(Q)wget -nc -q -O $(BIN_DIR)/sha1sum-linux-image https://github.com/sysprog21/rv32emu-prebuilt/releases/download/$(LATEST_RELEASE)/sha1sum-linux-image
 	$(Q)$(call notice, [OK])
 else
-	$(Q)wget -q -O $(BIN_DIR)/sha1sum-linux-x86-softfp https://github.com/sysprog21/rv32emu-prebuilt/releases/download/$(LATEST_RELEASE)/sha1sum-linux-x86-softfp
-	$(Q)wget -q -O $(BIN_DIR)/sha1sum-riscv32 https://github.com/sysprog21/rv32emu-prebuilt/releases/download/$(LATEST_RELEASE)/sha1sum-riscv32
+	- $(Q)wget -nc -q -O $(BIN_DIR)/sha1sum-linux-x86-softfp https://github.com/sysprog21/rv32emu-prebuilt/releases/download/$(LATEST_RELEASE)/sha1sum-linux-x86-softfp
+	- $(Q)wget -nc -q -O $(BIN_DIR)/sha1sum-riscv32 https://github.com/sysprog21/rv32emu-prebuilt/releases/download/$(LATEST_RELEASE)/sha1sum-riscv32
 	$(Q)$(call notice, [OK])
 endif
 endif
