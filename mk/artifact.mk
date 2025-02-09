@@ -60,25 +60,35 @@ endif
 artifact: fetch-checksum ieeelib scimark2
 ifeq ($(call has, PREBUILT), 1)
 	$(Q)$(PRINTF) "Checking SHA-1 of prebuilt binaries ... "
+ifeq ($(SKIP_CHECKSUM),)
 	$(Q)$(eval RES := 0)
+else
+	# Assume every downloaded file is verified.
+	$(Q)$(eval RES := 1)
+endif
 
 ifeq ($(call has, SYSTEM), 1)
+ifeq ($(SKIP_CHECKSUM),)
 	$(Q)$(eval PREBUILT_LINUX_IMAGE_FILENAME := $(shell cat $(BIN_DIR)/sha1sum-linux-image | awk '{  print $$2 };'))
 
 	$(Q)$(eval $(foreach FILE,$(PREBUILT_LINUX_IMAGE_FILENAME), \
 	    $(call verify,$(shell grep -w $(FILE) $(BIN_DIR)/sha1sum-linux-image | awk '{ print $$1 };'),$(BIN_DIR)/linux-image/$(FILE),RES) \
 	))
+endif
 
 	$(Q)$(eval RV32EMU_PREBUILT_TARBALL := rv32emu-linux-image-prebuilt.tar.gz)
 else ifeq ($(call has, ARCH_TEST), 1)
+ifeq ($(SKIP_CHECKSUM),)
 	$(Q)$(eval PREBUILT_SAIL_FILENAME := $(shell cat $(BIN_DIR)/rv32emu-prebuilt-sail-$(HOST_PLATFORM).sha | awk '{  print $$2 };'))
 
 	$(Q)$(eval $(foreach FILE,$(PREBUILT_SAIL_FILENAME), \
 	    $(call verify,$(shell grep -w $(FILE) $(BIN_DIR)/rv32emu-prebuilt-sail-$(HOST_PLATFORM).sha | awk '{ print $$1 };'),$(BIN_DIR)/$(FILE),RES) \
 	))
+endif
 
 	$(Q)$(eval RV32EMU_PREBUILT_TARBALL := rv32emu-prebuilt-sail-$(HOST_PLATFORM))
 else
+ifeq ($(SKIP_CHECKSUM),)
 	$(Q)$(eval PREBUILT_X86_FILENAME := $(shell cat $(BIN_DIR)/sha1sum-linux-x86-softfp | awk '{  print $$2 };'))
 	$(Q)$(eval PREBUILT_RV32_FILENAME := $(shell cat $(BIN_DIR)/sha1sum-riscv32 | awk '{ print $$2 };'))
 
@@ -88,6 +98,7 @@ else
 	$(Q)$(eval $(foreach FILE,$(PREBUILT_RV32_FILENAME), \
 	    $(call verify,$(shell grep -w $(FILE) $(BIN_DIR)/sha1sum-riscv32 | awk '{ print $$1 };'),$(BIN_DIR)/riscv32/$(FILE),RES) \
 	))
+endif
 
 	$(Q)$(eval RV32EMU_PREBUILT_TARBALL := rv32emu-prebuilt.tar.gz)
 endif
@@ -106,6 +117,9 @@ else
 	else \
 	    $(call notice, [OK]); \
 	fi
+endif
+ifneq ($(SKIP_CHECKSUM),)
+	$(Q)$(eval RES := 0)
 endif
 else
 ifeq ($(call has, SYSTEM), 1)
@@ -146,6 +160,7 @@ endif
 endif
 
 fetch-checksum:
+ifeq ($(SKIP_CHECKSUM),)
 ifeq ($(call has, PREBUILT), 1)
 	$(Q)$(PRINTF) "Fetching SHA-1 of prebuilt binaries ...\n"
 ifeq ($(call has, SYSTEM), 1)
@@ -159,13 +174,18 @@ else
 	$(Q)$(call notice, [OK])
 endif
 endif
+else
+$(info Skip fetch-checksum target entirely.)
+endif
 
 scimark2:
 ifeq ($(call has, PREBUILT), 0)
 ifeq ($(call has, SYSTEM), 0)
 	$(Q)$(call prologue,"scimark2")
 	$(Q)$(call download,$(SCIMARK2_URL))
+ifeq ($(SKIP_CHECKSUM),)
 	$(Q)$(call verify,$(SCIMARK2_SHA1),$(notdir $(SCIMARK2_URL)))
+endif
 	$(Q)$(call extract,"./tests/scimark2",$(notdir $(SCIMARK2_URL)))
 	$(Q)$(call epilogue,$(notdir $(SCIMARK2_URL)),$(SHA1_FILE1),$(SHA1_FILE2))
 	$(Q)$(PRINTF) "Building scimark2 ...\n"

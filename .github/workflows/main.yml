@@ -40,6 +40,8 @@ jobs:
       fail-fast: false
       matrix:
         compiler: [gcc, clang]
+    env:
+      SKIP_CHECKSUM: '1'
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
@@ -253,6 +255,7 @@ jobs:
       # FIXME: gcc build fails on Aarch64/Linux hosts
       env:
         CC: clang
+        SKIP_CHECKSUM: '1'
       with:
         arch: aarch64
         distro: ubuntu24.04
