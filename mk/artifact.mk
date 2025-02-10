@@ -60,12 +60,7 @@ endif
 artifact: fetch-checksum ieeelib scimark2
 ifeq ($(call has, PREBUILT), 1)
 	$(Q)$(PRINTF) "Checking SHA-1 of prebuilt binaries ... "
-ifeq ($(SKIP_CHECKSUM),)
 	$(Q)$(eval RES := 0)
-else
-	# Assume every downloaded file is verified.
-	$(Q)$(eval RES := 1)
-endif
 
 ifeq ($(call has, SYSTEM), 1)
 ifeq ($(SKIP_CHECKSUM),)
@@ -103,6 +98,11 @@ endif
 	$(Q)$(eval RV32EMU_PREBUILT_TARBALL := rv32emu-prebuilt.tar.gz)
 endif
 
+ifneq ($(SKIP_CHECKSUM),)
+	$(Q)$(eval RES := $(shell (ls build | grep $(RV32EMU_PREBUILT_TARBALL) >/dev/null 2>&1 && echo "0") || echo "1"))
+	$(PRINTF) "LOOKING FOR $(RV32EMU_PREBUILT_TARBALL), RES=$(RES)"
+endif
+
 ifeq ($(call has, ARCH_TEST), 1)
 	$(Q)if [ "$(RES)" = "1" ]; then \
 	    $(PRINTF) "\n$(YELLOW)SHA-1 verification failed! Re-fetching prebuilt binaries from \"rv32emu-prebuilt\" ...\n$(NO_COLOR)"; \
@@ -113,14 +113,13 @@ ifeq ($(call has, ARCH_TEST), 1)
 else
 	$(Q)if [ "$(RES)" = "1" ]; then \
 	    $(PRINTF) "\n$(YELLOW)SHA-1 verification failed! Re-fetching prebuilt binaries from \"rv32emu-prebuilt\" ...\n$(NO_COLOR)"; \
-	    wget -q --show-progress $(PREBUILT_BLOB_URL)/$(RV32EMU_PREBUILT_TARBALL) -O- | tar -C build --strip-components=1 -xz; \
+	    wget -q --show-progress $(PREBUILT_BLOB_URL)/$(RV32EMU_PREBUILT_TARBALL) -O build/$(RV32EMU_PREBUILT_TARBALL); \
+	    tar -C build --strip-components=1 -xzf build/$(RV32EMU_PREBUILT_TARBALL); \
 	else \
 	    $(call notice, [OK]); \
 	fi
 endif
-ifneq ($(SKIP_CHECKSUM),)
-	$(Q)$(eval RES := 0)
-endif
+
 else
 ifeq ($(call has, SYSTEM), 1)
 	$(Q)(cd $(BIN_DIR) && $(SHA1SUM) linux-image/Image >> sha1sum-linux-image)
